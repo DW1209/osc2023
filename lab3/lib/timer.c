@@ -30,22 +30,24 @@ void core_timer_disable(void) {
     );
 }
 
-void add_core_timer(void (*func)(void*), void *args, unsigned int time) {
-    struct timer_event *timer = (struct timer_event*) simple_alloc(sizeof(struct timer_event));
+void add_core_timer(void (*func)(void*), void *args, unsigned long time) {
+    unsigned int size = sizeof(struct timer_event);
+    unsigned long expired = get_core_current_count() + time;
+    struct timer_event *timer = (struct timer_event*) simple_alloc(size);
 
     timer->args     = args;
-    timer->expired  = get_core_current_count() + time;
+    timer->expired  = expired;
     timer->callback = func;
     timer->next     = 0;
 
-    int update = 0;
+    int update = false;
 
     if (!timerlist) {
-        timerlist = timer; update = 1;
+        timerlist = timer; update = true;
     } else if (timerlist->expired > timer->expired) {
         timer->next = timerlist;
         timerlist = timer;
-        update = 1;
+        update = true;
     } else {
         struct timer_event *current = timerlist;
         while (!current->next && current->expired < timer->expired) {
@@ -61,7 +63,7 @@ void add_core_timer(void (*func)(void*), void *args, unsigned int time) {
     }
 }
 
-void set_core_timer(unsigned int time) {
+void set_core_timer(unsigned long time) {
     asm volatile("msr cntp_tval_el0, %0\r\n" :"=r"(time));
 }
 
@@ -73,8 +75,8 @@ void remove_core_timer(void) {
     if (!timerlist) {
         core_timer_disable();
     } else {
-        unsigned int count = get_core_current_count();
-        set_core_timer(timerlist->expired - count);
+        unsigned long current = get_core_current_count();
+        set_core_timer(timerlist->expired - current);
     }
 }
 
@@ -93,6 +95,7 @@ void print_elapsed_time(void) {
 
 void print_core_timer_message(void *args) {
     mini_uart_puts((char*) args);
+    mini_uart_puts("\r\n");
 }
 
 unsigned long get_core_frequency(void) {

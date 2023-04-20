@@ -11,7 +11,7 @@ int main(void) {
 
     devicetree_get_address();
     fdt_traverse(initramfs_callback);
-
+    
     enable_interrupt();
     mini_uart_puts("\r\nBasic Shell\r\n");
 
@@ -34,18 +34,18 @@ int main(void) {
             hello();
         } else if (strcmp(buffer, "alloc") == 0) {
             alloc();
-        } else if (strcmp(buffer, "async") == 0) {          // EL1
+        } else if (strcmp(buffer, "async") == 0) {              // EL1
             async();
         } else if (strcmp(buffer, "reboot") == 0) {
             reboot();
-        } else if (strcmp(buffer, "execute") == 0) {        // EL0
+        } else if (strcmp(buffer, "execute") == 0) {            // EL0
             execute();
-        } else if (strcmp(buffer, "boottime") == 0) {       // EL0
+        } else if (strcmp(buffer, "boottime") == 0) {           // EL0
             boottime();
-        } else if (strcmp(buffer, "multiplex") == 0) {      // EL1
-            multiplex();
+        } else if (strncmp(buffer, "settimeout", 10) == 0) {    // EL1
+            settimeout(buffer);
         } else {
-            message(buffer);
+            message();
         }
     }
 

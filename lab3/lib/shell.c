@@ -32,7 +32,7 @@ void usage(void) {
     mini_uart_puts("reboot:\t\treboot the device\r\n");
     mini_uart_puts("execute:\trun user program from initramfs\r\n");
     mini_uart_puts("boottime:\tshow time aftering booting per two seconds\r\n");
-    mini_uart_puts("multiplex:\ttest for core timer multiplexing function\r\n");
+    mini_uart_puts("settimeout:\tset the timer to print <message> after <seconds>\r\n");
 }
 
 void alloc(void) {
@@ -113,32 +113,41 @@ void execute(void) {
     cpio_execute();
 }
 
-void multiplex(void) {
-    disable_interrupt();
-
-    char *msg1 = (char*) simple_alloc(32);
-    char *msg2 = (char*) simple_alloc(32);
-    char *msg3 = (char*) simple_alloc(32);
-
-    msg1 = "1st sent, 3rd received.\r\n";
-    msg2 = "2nd sent, 2nd received.\r\n";
-    msg3 = "3rd sent, 1st received.\r\n";
-
-    add_core_timer(print_core_timer_message, msg1, 3 * get_core_frequency());
-    add_core_timer(print_core_timer_message, msg2, 2 * get_core_frequency());
-    add_core_timer(print_core_timer_message, msg3, 1 * get_core_frequency());
-
-    enable_interrupt();
-    core_timer_enable();
-
-    int enable = 1;
-
-    while (enable) {
-        asm volatile("mrs %0, cntp_ctl_el0\r\n" :"=r"(enable));
-    }
+void message(void) {
+    mini_uart_puts("command not found\r\n");
 }
 
-void message(char *s) {
-    mini_uart_puts(s);
-    mini_uart_puts(" command not found\r\n");
+void settimeout(char *s) {
+    char *cmd[CMDSIZE];
+    unsigned int len = 0;
+
+    for (int i = 0; i < CMDSIZE; i++) {
+        cmd[i] = (char*) simple_alloc(CMDSIZE * sizeof(char));
+    }
+
+    char *delim = " ";
+    char *token = strtok(s, delim);
+
+    while (token != NULL) {
+        cmd[len++] = token;
+        token = strtok(NULL, delim);
+    }
+
+
+    char msg[BUFSIZE];
+    unsigned int idx = 0;
+    unsigned int sec = atoid(cmd[len - 1], strlen(cmd[len - 1]));
+
+    for (int i = 1; i < len - 1; i++) {
+        for (int j = 0; j < strlen(cmd[i]); j++) {
+            msg[idx++] = cmd[i][j];
+        }
+        msg[idx++] = (i == len - 2)? '\0': ' ';
+    }
+
+    disable_interrupt();
+    add_core_timer(print_core_timer_message, msg, sec * get_core_frequency());
+    enable_interrupt();
+
+    core_timer_enable();
 }

@@ -39,7 +39,19 @@ void printhex(unsigned long value) {
     mini_uart_puts(nums);
 }
 
-int atoi(const char *s, unsigned int size) {
+int atoid(const char *s, unsigned int size) {
+    int num = 0;
+
+    for (unsigned int i = 0; i < size && s[i] != '\0'; i++) {
+        if ('0' <= s[i] && s[i] <= '9') {
+            num = (10 * num) + (s[i] - '0');
+        }
+    }
+
+    return num;
+}
+
+int atoih(const char *s, unsigned int size) {
     int num = 0;
 
     for (unsigned int i = 0; i < size && s[i] != '\0'; i++) {
@@ -81,4 +93,61 @@ unsigned int strlen(const char *s) {
     }
 
     return len;
+}
+
+char* strchr(const char* s, int c) {
+    while (*s != '\0') {
+        if (*s == c) {
+            return (char*) s;
+        }
+        s++;
+    }
+
+    if (c == '\0') {
+        return (char*) s;
+    }
+
+    return NULL;
+}
+
+char* strtok(char *str, const char *delim) {
+    int found = false;              // flag to indicate if delimeter is found;
+    char *current_token = NULL;     // pointer to current token
+    static char *last_token = NULL; // pointer to last token
+
+    // if str is NULL, start searching from the last token
+    if (str == NULL) {
+        str = last_token;
+    }
+
+    // skip leading delimeters
+    while (*str && strchr(delim, *str) != NULL) {
+        str++;
+    }
+
+    // if end of string is reached, return NULL
+    if (*str == '\0') {
+        last_token = NULL;
+        return NULL;
+    }
+
+    // search for the end of the token
+    current_token = str;
+    while (*current_token && !found) {
+        if (strchr(delim, *current_token) != NULL) {
+            found = true;
+        } else {
+            current_token++;
+        }
+    }
+
+    // if end of string is reached, set last_token to NULL
+    if (*current_token == '\0') {
+        last_token = NULL;
+    } else {
+        *current_token = '\0';           // NULL-terminate the token
+        last_token = current_token + 1; // update last_token to point to the next character
+    }
+
+    return str;
 }

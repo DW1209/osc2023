@@ -24,8 +24,8 @@ void cpio_list(void) {
         mini_uart_puts(filename);
         mini_uart_puts("\r\n");
 
-        unsigned int namesize = atoi(current->c_namesize, 8);
-        unsigned int filesize = atoi(current->c_filesize, 8);
+        unsigned int namesize = atoih(current->c_namesize, 8);
+        unsigned int filesize = atoih(current->c_filesize, 8);
         unsigned int offset   = headerlen + namesize;
 
         offset   = (offset % 4)?   ((offset / 4) + 1) * 4  : offset;
@@ -57,8 +57,8 @@ void cpio_execute(void) {
             mini_uart_puts("file does not exist!\r\n"); break;
         }
 
-        unsigned int filesize = atoi(current->c_filesize, 8);
-        unsigned int namesize = atoi(current->c_namesize, 8);
+        unsigned int filesize = atoih(current->c_filesize, 8);
+        unsigned int namesize = atoih(current->c_namesize, 8);
         unsigned int offset   = headerlen + namesize;
 
         offset = (offset % 4)? ((offset / 4) + 1) * 4: offset;
@@ -105,8 +105,8 @@ void cpio_concatenate(void) {
             mini_uart_puts("file does not exist!\r\n"); break;
         }
 
-        unsigned int filesize = atoi(current->c_filesize, 8);
-        unsigned int namesize = atoi(current->c_namesize, 8);
+        unsigned int filesize = atoih(current->c_filesize, 8);
+        unsigned int namesize = atoih(current->c_namesize, 8);
         unsigned int offset   = headerlen + namesize;
 
         offset = (offset % 4)? ((offset / 4) + 1) * 4: offset;
